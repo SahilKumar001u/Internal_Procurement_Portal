@@ -1,0 +1,109 @@
+{% extends 'requisitions/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                {% if user_profile.role == 'MANAGER' %}
+                    Manager Dashboard
+                {% else %}
+                    My Requisitions
+                {% endif %}
+            </h2>
+            {% if user_profile.role != 'MANAGER' %}
+            <a href="{% url 'create_requisition' %}" class="btn btn-primary">Create New Requisition</a>
+            {% endif %}
+        </div>
+
+        {% if stats %}
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <a href="{% url 'dashboard' %}" class="text-decoration-none">
+                    <div class="card bg-primary text-white {% if not current_filter %}border border-dark border-3{% endif %}">
+                        <div class="card-body text-center">
+                            <h3>{{ stats.total }}</h3>
+                            <p class="mb-0">Total Requests</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'dashboard' %}?status=PENDING" class="text-decoration-none">
+                    <div class="card bg-warning text-dark {% if current_filter == 'PENDING' %}border border-dark border-3{% endif %}">
+                        <div class="card-body text-center">
+                            <h3>{{ stats.pending }}</h3>
+                            <p class="mb-0">Pending</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'dashboard' %}?status=APPROVED" class="text-decoration-none">
+                    <div class="card bg-success text-white {% if current_filter == 'APPROVED' %}border border-dark border-3{% endif %}">
+                        <div class="card-body text-center">
+                            <h3>{{ stats.approved }}</h3>
+                            <p class="mb-0">Approved</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'dashboard' %}?status=REJECTED" class="text-decoration-none">
+                    <div class="card bg-danger text-white {% if current_filter == 'REJECTED' %}border border-dark border-3{% endif %}">
+                        <div class="card-body text-center">
+                            <h3>{{ stats.rejected }}</h3>
+                            <p class="mb-0">Rejected</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card shadow">
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Requester</th>
+                            <th>Items</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requisitions %}
+                        <tr>
+                            <td>REQ-{{ req.id }}</td>
+                            <td>{{ req.requester.username }}</td>
+                            <td>{{ req.line_items.count }} item(s)</td>
+                            <td>
+                                <span class="badge 
+                                    {% if req.status == 'PENDING' %}bg-warning
+                                    {% elif req.status == 'APPROVED' %}bg-success
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ req.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ req.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'requisition_detail' req.id %}" class="btn btn-sm btn-info">View</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No requisitions found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

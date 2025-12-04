@@ -1,0 +1,103 @@
+{% extends 'requisitions/base.html' %}
+
+{% block title %}Requisition Detail{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Requisition REQ-{{ requisition.id }}</h2>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Requisition Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Requester:</strong> {{ requisition.requester.username }}</p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge 
+                                {% if requisition.status == 'PENDING' %}bg-warning
+                                {% elif requisition.status == 'APPROVED' %}bg-success
+                                {% else %}bg-danger{% endif %}">
+                                {{ requisition.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Created:</strong> {{ requisition.created_at|date:"M d, Y H:i" }}</p>
+                        <p><strong>Updated:</strong> {{ requisition.updated_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Line Items</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in requisition.line_items.all %}
+                        <tr>
+                            <td>{{ item.item_name }}</td>
+                            <td>{{ item.get_category_display }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>${{ item.unit_price }}</td>
+                            <td>${{ item.total_price }}</td>
+                            <td>{{ item.purpose }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if requisition.approval_logs.all %}
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Approval History</h5>
+            </div>
+            <div class="card-body">
+                {% for log in requisition.approval_logs.all %}
+                <div class="border-bottom pb-2 mb-2">
+                    <p class="mb-1">
+                        <strong>{{ log.manager.username }}</strong> 
+                        <span class="badge {% if log.action == 'APPROVED' %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ log.get_action_display }}
+                        </span>
+                        <small class="text-muted">{{ log.timestamp|date:"M d, Y H:i" }}</small>
+                    </p>
+                    {% if log.comments %}
+                    <p class="mb-0"><em>Comments: {{ log.comments }}</em></p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if can_approve and requisition.status == 'PENDING' %}
+        <div class="card shadow">
+            <div class="card-body">
+                <a href="{% url 'approve_requisition' requisition.id %}" class="btn btn-success">Approve/Reject This Requisition</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
