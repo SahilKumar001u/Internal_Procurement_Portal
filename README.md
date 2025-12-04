@@ -86,3 +86,30 @@ procurement_system/
 
 Access Django admin at: http://127.0.0.1:8000/admin/
 Login with admin credentials to manage users and data.
+
+## Deploying to Render
+
+### Quick Deploy (Blueprint)
+1. Push this repo to GitHub
+2. Go to [render.com](https://render.com) and sign up
+3. Click **New +** → **Blueprint**
+4. Connect your GitHub repo
+5. Render auto-detects `render.yaml` and sets up everything
+6. Click **Apply** and wait for deployment
+
+### Manual Deploy
+1. Create a **PostgreSQL** database on Render (free tier)
+2. Create a **Web Service** with these settings:
+   - **Build Command**: `./build.sh`
+   - **Start Command**: `gunicorn procurement_system.wsgi:application --bind 0.0.0.0:$PORT`
+3. Add environment variables:
+   - `SECRET_KEY`: Generate a secure random string
+   - `DATABASE_URL`: Copy from your Render PostgreSQL database
+   - `DEBUG`: `False`
+   - `ALLOWED_HOSTS`: `your-app-name.onrender.com`
+
+### Post-Deployment
+Create a superuser via Render Shell:
+```bash
+python manage.py createsuperuser
+```
